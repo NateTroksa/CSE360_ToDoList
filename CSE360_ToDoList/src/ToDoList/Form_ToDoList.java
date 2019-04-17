@@ -6,6 +6,8 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -29,6 +31,8 @@ import javax.swing.DefaultComboBoxModel;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.beans.PropertyChangeEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -145,9 +149,14 @@ public class Form_ToDoList {
 		comboBox.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
-					DefaultTableModel model = (DefaultTableModel)table.getModel();
-					model.addRow(new String[] {"6", String.valueOf(comboBox.getSelectedItem()), "Test", "Test"});
+					TableRowSorter<TableModel> sortByColumn = new TableRowSorter<>(table.getModel());
+					table.setRowSorter(sortByColumn);
 					
+					List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+					
+					sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex(), SortOrder.ASCENDING));
+					sortByColumn.setSortKeys(sortKeys);
+					sortByColumn.sort();
 					//Sort by current selected item "String.valueOf(comboBox.getSelectedItem())"
 				}
 			}
