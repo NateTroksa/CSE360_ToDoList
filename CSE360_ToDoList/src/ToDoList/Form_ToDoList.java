@@ -1,33 +1,40 @@
+
+// Reasons for my changes:
+// I split a lot of stuff up into functions to make everything easier to work with
+// Since tasks require additional dates, I had to make a task class to hold more info
+// Since the rows don't hold the Task objects themselves, I had to make a search and display function
+
+
+//TODO / problems:
+//comments
+//simplify code
+
 package ToDoList;
+import java.io.*;
+import java.awt.Desktop;
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import java.awt.EventQueue;
 
 import javax.swing.*;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.NumberFormatter;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
-import javax.swing.JScrollPane;
-import javax.swing.JComboBox;
-import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JLabel;
+
 import javax.swing.LayoutStyle.ComponentPlacement;
 import java.awt.Font;
-
-import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeListener;
@@ -36,12 +43,21 @@ import java.util.List;
 import java.beans.PropertyChangeEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 
 public class Form_ToDoList {
 
 	private JFrame frame;
 	private JTable table;
+	
+	private String saveFile = "saveFile.txt";
+	private static List<Task> taskList = new ArrayList<Task>();
+	private static List<Task> completedList = new ArrayList<Task>();
+	private static List<Task> deletedList = new ArrayList<Task>();
+	
 
+	public static String newline = System.getProperty("line.separator");
+	
 	/**
 	 * Launch the application.
 	 */
@@ -65,9 +81,243 @@ public class Form_ToDoList {
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
+	
+	private void printReport(DefaultTableModel model) throws IOException  {
+		File file = new File("printReport.txt");
+	      
+        file.createNewFile();
+        FileWriter writer = new FileWriter(file);  
+        
+        String saveString = "";
+        
+        saveString = saveString + "INCOMPLETE:";
+        for (int i = 0 ; i < taskList.size(); i++){
+        	Task T = taskList.get(i);
+        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
+        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
+        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
+        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
+        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
+        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
+        }
+        
+        saveString = saveString + newline + "COMPLETED: ";
+        for (int i = 0 ; i < completedList.size(); i++){
+        	Task T = completedList.get(i);
+        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
+        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
+        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
+        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
+        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
+        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
+        }
+        
+        saveString = saveString + newline + "DELETED:";
+        for (int i = 0 ; i < deletedList.size(); i++){
+        	Task T = deletedList.get(i);
+        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
+        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
+        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
+        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
+        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
+        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
+        }
+        
+        writer.write(saveString); 
+        writer.flush();
+        writer.close();
+        
+        try {
+            Desktop desktop = null;
+            if (Desktop.isDesktopSupported()) {
+              desktop = Desktop.getDesktop();
+            }
+
+             desktop.open(new File("printReport.txt"));
+          } catch (IOException ioe) {
+            ioe.printStackTrace();
+          }
+	}
+	
+	private void save(DefaultTableModel model) throws IOException  {
+        File file = new File(saveFile);
+      
+        file.createNewFile();
+        FileWriter writer = new FileWriter(file);  
+        
+        String saveString = "";
+        
+        for (int i = 0 ; i < taskList.size(); i++){
+        	String S[] = taskList.get(i).toStringArray();
+        	for (int j = 0; j<6; j++) {
+        		saveString += S[j] + "\n";
+        	}
+        }
+        
+        for (int i = 0 ; i < completedList.size(); i++){
+        	String S[] = completedList.get(i).toStringArray();
+        	for (int j = 0; j<6; j++) {
+        		saveString += S[j] + "\n";
+        	}
+        }
+        
+        for (int i = 0 ; i < deletedList.size(); i++){
+        	String S[] = deletedList.get(i).toStringArray();
+        	for (int j = 0; j<6; j++) {
+        		saveString += S[j] + "\n";
+        	}
+        }
+        
+        writer.write(saveString); 
+        writer.flush();
+        writer.close();
+	}
+	
+	private void load(DefaultTableModel model)  throws IOException{
+		
+		model.setRowCount(0);
+        File file = new File(saveFile);
+        file.createNewFile();
+
+        FileReader fr = new FileReader(file);
+        char [] a = new char[1000]; // file buffer (not sure if better way to do this)
+        fr.read(a); 
+
+        int fileCounter = 0;
+        int filePriority = 0;
+        String fileStatus = " ";
+        String fileDueDate = " ";
+        String fileDescription = " ";
+        String fileStartDate = " ";
+        String fileCompletedDate = " ";
+
+        String input = "";
+        for(char c : a){
+            if (c == '\n'){
+                if (fileCounter == 0){filePriority = Integer.parseInt(input);}
+                else if (fileCounter == 1){fileStatus = input;}
+                else if (fileCounter == 2){fileDueDate = input;}
+                else if (fileCounter == 3){fileDescription = input;}
+                else if (fileCounter == 4){fileStartDate = input;}
+                else if (fileCounter == 5){fileCompletedDate = input;}
+                input = "";
+                fileCounter++;
+
+                if (fileCounter == 6) {
+                	Task T = new Task(filePriority, fileStatus, fileDueDate, fileDescription, fileStartDate, fileCompletedDate);
+                	fileCounter = 0;
+                	add(model, T);
+                }
+            }
+            else{
+                input += c;
+            }
+        }
+        fr.close();
+	}
+	
+    static void add(DefaultTableModel model, Task T) {
+		if (T.getStatus().equals("Deleted")) {
+			deletedList.add(T);
+		}
+		else if (T.getStatus().equals("Completed")) {
+			completedList.add(T);
+		}
+		else {
+			taskList.add(T);
+		}
+		display(model);
+    }
+    
+    static void display(DefaultTableModel model) {
+    	model.setRowCount(0);
+    	for (int i = 0; i < taskList.size(); i ++) {
+    		Task T = taskList.get(i);
+    		String S[] = {Integer.toString(T.getPriority()),T.getStatus(),T.getDueDate(),T.getDescription()};
+    		model.addRow(S);
+    	}
+    }
+    
+    static void delete(DefaultTableModel model,int row) {
+    	for (int i = 0; i < model.getRowCount(); i++) {
+    		Task T = taskList.get(i);
+    		if (Integer.toString(T.getPriority()).equals(model.getValueAt(row, 0))) {
+    			T.setStatus("Deleted");
+    			deletedList.add(T);
+    			taskList.remove(i);
+    			updatePriorities(T.getPriority());
+    			break;
+    		}
+    	}
+    	model.removeRow(row);
+    	display(model);
+    }
+    
+    static void complete(DefaultTableModel model,int row) {
+    	DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+		Date date = new Date();
+		for (int i = 0; i < model.getRowCount(); i++) {
+			Task T = taskList.get(i);
+			if (Integer.toString(T.getPriority()).equals(model.getValueAt(row, 0))) {
+				T.setStatus("Completed");
+				T.setCompletedDate(dateFormat.format(date));
+    			completedList.add(T);
+    			taskList.remove(i);
+    			updatePriorities(T.getPriority());
+    			break;
+    		}
+    	}
+    	model.removeRow(row);
+    	display(model);
+    }
+    
+    static void restart(DefaultTableModel model) {
+    	model.setRowCount(0);
+    	taskList.clear();
+    	completedList.clear();
+    	deletedList.clear();
+    }
+    
+    //this function is currently unused. I don't think we need it.
+    static void sortByPriority() {
+		int n = taskList.size();
+        for (int i = 0; i < n-1; i++) {
+            for (int j = 0; j < n-i-1; j++) {
+                if (taskList.get(j).getPriority() > taskList.get(j+1).getPriority()) 
+                { 
+                    Task temp = new Task(taskList.get(j).getPriority(),
+            	        	taskList.get(j).getStatus(),
+            	        	taskList.get(j).getDueDate(),
+            	        	taskList.get(j).getDescription(),
+            	        	taskList.get(j).getStartDate(),
+            	        	taskList.get(j).getCompletedDate());
+                    
+                    taskList.get(j).setPriority(taskList.get(j+1).getPriority());
+    	        	taskList.get(j).setStatus(taskList.get(j+1).getStatus());
+    	        	taskList.get(j).setDueDate(taskList.get(j+1).getDueDate());
+    	        	taskList.get(j).setDescription(taskList.get(j+1).getDescription());
+    	        	taskList.get(j).setStartDate(taskList.get(j+1).getStartDate());
+    	        	taskList.get(j).setCompletedDate(taskList.get(j+1).getCompletedDate());
+
+    	        	taskList.get(j+1).setPriority(temp.getPriority());
+    	        	taskList.get(j+1).setStatus(temp.getStatus());
+    	        	taskList.get(j+1).setDueDate(temp.getDueDate());
+    	        	taskList.get(j+1).setDescription(temp.getDescription());
+    	        	taskList.get(j+1).setStartDate(temp.getStartDate());
+    	        	taskList.get(j+1).setCompletedDate(temp.getCompletedDate());
+                } 
+            }
+        }
+	} 
+
+	static void updatePriorities(int targetPriority) {
+		for (int i = 0; i < taskList.size(); i++) {
+			if (taskList.get(i).getPriority() > targetPriority) {
+				taskList.get(i).setPriority(taskList.get(i).getPriority()-1);
+			}
+		}
+	}
+    
 	private void initialize() {
 		frame = new JFrame("To Do List");
 		frame.addWindowListener(new WindowAdapter() {
@@ -76,66 +326,112 @@ public class Form_ToDoList {
 				//Pop up a Are you Sure dialog
 				int test1 = JOptionPane.showConfirmDialog(frame, "Do you wish to save first?", "Remove Dialog", JOptionPane.YES_NO_OPTION);
 				if(test1 == JOptionPane.YES_OPTION) {
-					//Save current data into file
+					try {
+						save((DefaultTableModel)table.getModel());
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		});
 		frame.setBounds(100, 100, 830, 545);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			
 		
 		JScrollPane scrollPane = new JScrollPane();
 		
 		JButton btnAdd = new JButton("Add");
-		btnAdd.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				DefaultTableModel model = (DefaultTableModel)table.getModel();
-				
-				//Open new form for add
-			      JTextField priority = new JTextField(5);
-			      JComboBox status = new JComboBox();
-			      status.setModel(new DefaultComboBoxModel(new String[] {"Not Started", "In Progress"}));
-			      JTextField date = new JTextField(10);
-			      JTextArea description = new JTextArea(5, 15);
-			      
-			      description.setLineWrap(true);
-			      
-			      JScrollPane scrollpane = new JScrollPane(description);
+        btnAdd.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
 
-			      
-			      JPanel myPanel = new JPanel();
-			      myPanel.add(new JLabel("Priority:"));
-			      myPanel.add(priority);
-			      myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-			      myPanel.add(new JLabel("Status:"));
-			      myPanel.add(status);
-			      myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-			      myPanel.add(new JLabel("Date:"));
-			      myPanel.add(date);
-			      myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-			      myPanel.add(new JLabel("Description:"));
-			      myPanel.add(scrollpane);
+                //Open new form for add
+                NumberFormat format = NumberFormat.getInstance();
+                NumberFormatter formatter = new NumberFormatter(format);
+                formatter.setValueClass(Integer.class);
+                formatter.setMinimum(0);
+                formatter.setMaximum(Integer.MAX_VALUE);
+                JFormattedTextField priorityField = new JFormattedTextField(formatter);
+                priorityField.setText("1");
+                priorityField.setColumns(5);
 
-			      int result = JOptionPane.showConfirmDialog(null, myPanel, 
-			               "Please Enter the Task to add", JOptionPane.OK_CANCEL_OPTION);
-			      if (result == JOptionPane.OK_OPTION) {
-			    	  String[] newRow = {priority.getText(), String.valueOf(status.getSelectedItem()), date.getText(), description.getText()};
-			    	  model.addRow(newRow);
-			      }
-			}
-		});
+                JComboBox status = new JComboBox();
+                status.setModel(new DefaultComboBoxModel(new String[]{"Not Started", "In Progress"}));
+
+                Date date = new Date();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                String dateString = dateFormat.format(date);
+                JFormattedTextField dateField = new JFormattedTextField(dateFormat);
+                dateField.setText(dateString); // today
+
+                JTextArea description = new JTextArea(5, 15);
+                description.setLineWrap(true);
+                description.setText("Add your description here...");
+                JScrollPane scrollpane = new JScrollPane(description);
+
+                JPanel myPanel = new JPanel();
+                myPanel.add(new JLabel("Priority:"));
+                myPanel.add(priorityField);
+                myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+                myPanel.add(new JLabel("Status:"));
+                myPanel.add(status);
+                myPanel.add(Box.createHorizontalStrut(20)); // a spacer
+                myPanel.add(new JLabel("Date:"));
+                myPanel.add(dateField);
+                myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+                myPanel.add(new JLabel("Description:"));
+                myPanel.add(scrollpane);
+
+                int result = JOptionPane.showConfirmDialog(null, myPanel,
+                        "Please Enter the Task to add", JOptionPane.OK_CANCEL_OPTION);
+                if (result == JOptionPane.OK_OPTION) {
+                    StringBuilder errorString = new StringBuilder();
+                    if (dateField.getText().length() == 0) {
+                        errorString.append("Enter date in correct format mm/dd/yyyy.\n");
+                    }
+                    if (Integer.parseInt(priorityField.getText()) <= 0) {
+                        errorString.append("Enter value greater than 0.\n");
+                    }
+                    for (int row = 0; row < model.getRowCount(); row++) {
+                        if (model.getValueAt(row, 0).equals(priorityField.getText())) {
+                            errorString.append("Repeated priority value.\n");
+                        }
+                        if (model.getValueAt(row, 3).equals(description.getText())) {
+                            errorString.append("Repeated description value.\n");
+                        }
+                    }
+                    if (errorString.toString().length() != 0) {
+                        JOptionPane.showMessageDialog(frame, errorString.toString());
+                    } else {
+                    	
+                    	String newDate = " ";
+                    	int newPriority = Integer.parseInt(priorityField.getText());
+                    	if (String.valueOf(status.getSelectedItem()).equals("In Progress")){
+                            date = new Date();
+                            newDate = dateFormat.format(date);
+                    	}
+                    	if (newPriority > taskList.size()+1) {
+                    		newPriority = taskList.size()+1;
+                    	}
+                        Task T = new Task(newPriority, String.valueOf(status.getSelectedItem()), dateField.getText(), description.getText(), newDate, " ");
+                        add(model,T);
+                    }
+                }
+            }
+        });
 		btnAdd.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
-		JButton btnCompleteTask = new JButton("Complete Task");
+		JButton btnCompleteTask = new JButton("Complete Task"); //comcom
 		btnCompleteTask.setFont(new Font("Tahoma", Font.BOLD, 16));
 		btnCompleteTask.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DefaultTableModel model = (DefaultTableModel)table.getModel();
 				try {
 				int SelectedRow = table.getSelectedRow();
-				model.removeRow(SelectedRow);
+				SelectedRow = Integer.parseInt(table.getValueAt(SelectedRow, 0).toString());
+				complete(model, SelectedRow - 1);
 				
-				//save to file as a Deleted task
-			
 				}catch(Exception ex){
 					JOptionPane.showMessageDialog(null, "Please select a row first!", "ERROR", JOptionPane.ERROR_MESSAGE);
 				}
@@ -150,31 +446,36 @@ public class Form_ToDoList {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
 					TableRowSorter<TableModel> sortByColumn = new TableRowSorter<>(table.getModel());
+					sortByColumn.setSortable(0, false);
+					sortByColumn.setSortable(1, false);
+					sortByColumn.setSortable(2, false);
+					sortByColumn.setSortable(3, false);
 					table.setRowSorter(sortByColumn);
 					
 					List<RowSorter.SortKey> sortKeys = new ArrayList<>();
 					
-					sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex(), SortOrder.ASCENDING));
+					if(comboBox.getSelectedIndex() == 2) 
+						sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex()+1, SortOrder.ASCENDING));
+					else
+						sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex(), SortOrder.ASCENDING));
 					sortByColumn.setSortKeys(sortKeys);
 					sortByColumn.sort();
-					//Sort by current selected item "String.valueOf(comboBox.getSelectedItem())"
 				}
 			}
 		});
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Priority", "Status", "Date", "Description"}));
+		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Priority", "Status", "Description"}));
 		comboBox.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
-		JButton btnDelete = new JButton("Delete");
+		JButton btnDelete = new JButton("Delete"); //deldel
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DefaultTableModel model = (DefaultTableModel)table.getModel();
 				
 				try {
 					int SelectedRow = table.getSelectedRow();
+					SelectedRow = Integer.parseInt(table.getValueAt(SelectedRow, 0).toString());
 					
-					//Save Deleted Item first or put into an arr
-					
-					model.removeRow(SelectedRow);			
+					delete(model, SelectedRow - 1);
 				}catch(Exception ex){
 					JOptionPane.showMessageDialog(null, "Please select a row first!");
 				}
@@ -185,14 +486,12 @@ public class Form_ToDoList {
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Object[][] rowData = new Object[table.getRowCount()][table.getColumnCount()];
-				for(int i = 0; i < table.getRowCount(); i++) {
-					for(int j = 0; j < table.getColumnCount(); j++) {
-						rowData[i][j] = table.getValueAt(i, j);
-					}
-				}
 				
-				//Call function to save file save(Object[][] table)
+				try {
+					save((DefaultTableModel)table.getModel());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		btnSave.setFont(new Font("Tahoma", Font.BOLD, 16));
@@ -200,10 +499,118 @@ public class Form_ToDoList {
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//Call for new form
-				//Delete old row
-				//add new row with "Updated Info"
-				//Re sort based on "String.valueOf(comboBox.getSelectedItem())"
+				DefaultTableModel model = (DefaultTableModel)table.getModel();
+				
+				int SelectedRow = 0;
+				try {
+					SelectedRow = Integer.parseInt(table.getValueAt(table.getSelectedRow(), 0).toString()) - 1;
+				}catch(Exception ex){
+					JOptionPane.showMessageDialog(null, "Please select a row first!");
+					return;
+				}
+				
+				for (int i = 0; i < model.getRowCount(); i++) {
+					Task T = taskList.get(i);
+					if (Integer.toString(T.getPriority()).equals(model.getValueAt(SelectedRow, 0))) {
+						//Open new form for add
+		                NumberFormat format = NumberFormat.getInstance();
+		                NumberFormatter formatter = new NumberFormatter(format);
+		                formatter.setValueClass(Integer.class);
+		                formatter.setMinimum(0);
+		                formatter.setMaximum(Integer.MAX_VALUE);
+		                JFormattedTextField priorityField = new JFormattedTextField(formatter);
+		                priorityField.setText(Integer.toString(T.getPriority()));
+		                priorityField.setColumns(5);
+
+		                JComboBox status = new JComboBox();
+		                status.setModel(new DefaultComboBoxModel(new String[]{"Not Started", "In Progress"}));
+		                if (T.getStatus().equals("Not Started")) {
+		                	status.setSelectedIndex(0);
+		                }
+		                else {
+		                	status.setSelectedIndex(1);
+		                }
+		                
+		                Date date = new Date();
+		                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+		                String dateString = dateFormat.format(date);
+		                JFormattedTextField dateField = new JFormattedTextField(dateFormat);
+		                dateField.setText(T.getDueDate()); // today
+
+		                JTextArea description = new JTextArea(5, 15);
+		                description.setLineWrap(true);
+		                description.setText(T.getDescription());
+		                JScrollPane scrollpane = new JScrollPane(description);
+
+		                JPanel myPanel = new JPanel();
+		                myPanel.add(new JLabel("Priority:"));
+		                myPanel.add(priorityField);
+		                myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+		                myPanel.add(new JLabel("Status:"));
+		                myPanel.add(status);
+		                myPanel.add(Box.createHorizontalStrut(20)); // a spacer
+		                myPanel.add(new JLabel("Date:"));
+		                myPanel.add(dateField);
+		                myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+		                myPanel.add(new JLabel("Description:"));
+		                myPanel.add(scrollpane);
+
+		                int result = JOptionPane.showConfirmDialog(null, myPanel,
+		                        "Update Task", JOptionPane.OK_CANCEL_OPTION);
+		                if (result == JOptionPane.OK_OPTION) {
+		                    StringBuilder errorString = new StringBuilder();
+		                    if (dateField.getText().length() == 0) {
+		                        errorString.append("Enter date in correct format mm/dd/yyyy.\n");
+		                    }
+		                    if (Integer.parseInt(priorityField.getText()) <= 0) {
+		                        errorString.append("Enter value greater than 0.\n");
+		                    }
+		                    for (int row = 0; row < model.getRowCount(); row++) {
+		                        if (model.getValueAt(row, 0).equals(priorityField.getText())) {
+		                        	if (!priorityField.getText().equals(Integer.toString(T.getPriority()))){
+		                        		errorString.append("Repeated priority value.\n");
+		                        	}
+		                        }
+		                        if (model.getValueAt(row, 3).equals(description.getText())) {
+		                        	if (!description.getText().equals(T.getDescription())){
+		                        		errorString.append("Repeated description value.\n");
+		                        	}
+		                        }
+		                    }
+		                    if (errorString.toString().length() != 0) {
+		                        JOptionPane.showMessageDialog(frame, errorString.toString());
+		                    } else {
+		                    	
+		                    	String newDate = " ";
+		                    	int newPriority = Integer.parseInt(priorityField.getText());
+		                    	if (!T.getStatus().equals("In Progress")) {
+			                    	if (String.valueOf(status.getSelectedItem()).equals("In Progress")){
+			                            date = new Date();
+			                            newDate = dateFormat.format(date);
+			                    	}
+		                    	}
+		                    	if (newPriority > taskList.size()+1) {
+		                    		newPriority = taskList.size()+1;
+		                    	}
+		                        Task newTask = new Task(newPriority, String.valueOf(status.getSelectedItem()), dateField.getText(), description.getText(), newDate, " ");
+		                        model.removeRow(SelectedRow);
+		                        int tempP = T.getPriority();
+		                        taskList.get(SelectedRow).setPriority(newTask.getPriority());
+		                        taskList.get(SelectedRow).setStatus(newTask.getStatus());
+		                        taskList.get(SelectedRow).setDueDate(newTask.getDueDate());
+		                        taskList.get(SelectedRow).setDescription(newTask.getDescription());
+		                        taskList.get(SelectedRow).setStartDate(newTask.getStartDate());
+		                        taskList.get(SelectedRow).setCompletedDate(newTask.getCompletedDate());
+		                        if (newTask.getPriority()>taskList.size()) {
+		                        	updatePriorities(tempP);
+		                        }
+		                        sortByPriority();
+		                        display(model);
+		                    }
+		                }
+						break;
+					}
+				}
 			}
 		});
 		btnUpdate.setFont(new Font("Tahoma", Font.BOLD, 16));
@@ -215,13 +622,24 @@ public class Form_ToDoList {
 				int rmvDiaResult = JOptionPane.showConfirmDialog(frame, "Are you sure to wish to remove all tasks?", "Remove All Dialog", JOptionPane.YES_NO_OPTION);
 				if(rmvDiaResult == JOptionPane.YES_OPTION) {
 					DefaultTableModel model = (DefaultTableModel)table.getModel();
-					model.setRowCount(0);
+					restart(model);
 				}
 			}
 		});
 		btnRemoveAll.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
 		JButton btnPrintReport = new JButton("Print Report");
+		btnPrintReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				DefaultTableModel model = (DefaultTableModel)table.getModel();
+				try {
+					printReport(model);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		btnPrintReport.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
@@ -319,9 +737,14 @@ public class Form_ToDoList {
 		table.getColumnModel().getColumn(2).setMaxWidth(75);
 		table.getColumnModel().getColumn(3).setPreferredWidth(200);
 		table.getColumnModel().getColumn(3).setMinWidth(200);
-		table.setAutoCreateRowSorter(true);
 		scrollPane.setViewportView(table);
 		frame.getContentPane().setLayout(groupLayout);
 		
+		
+		try {
+			load((DefaultTableModel)table.getModel());
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
 	}
 }
