@@ -1,3 +1,5 @@
+
+
 import java.awt.EventQueue;
 
 import javax.swing.*;
@@ -55,7 +57,7 @@ public class toDoList {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                	toDoList window = new toDoList();
+                    toDoList window = new toDoList();
                     window.frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -110,7 +112,7 @@ public class toDoList {
                 JFormattedTextField priorityField = new JFormattedTextField(formatter);
                 priorityField.setText("0");
                 priorityField.setColumns(5);
-                
+
                 JComboBox status = new JComboBox();
                 status.setModel(new DefaultComboBoxModel(new String[]{"Not Started", "In Progress"}));
 
@@ -122,6 +124,7 @@ public class toDoList {
 
                 JTextArea description = new JTextArea(5, 15);
                 description.setLineWrap(true);
+                description.setText("Add your description here...");
                 JScrollPane scrollpane = new JScrollPane(description);
 
                 JPanel myPanel = new JPanel();
@@ -142,10 +145,18 @@ public class toDoList {
                 if (result == JOptionPane.OK_OPTION) {
                     StringBuilder errorString = new StringBuilder();
                     if (dateField.getText().length() == 0) {
-                    	JOptionPane.showMessageDialog(frame, "Enter date in correct format mm/dd/yyyy.\n");
+                        errorString.append("Enter date in correct format mm/dd/yyyy.\n");
                     }
                     if (priorityField.getText().length() == 0) {
                         errorString.append("Enter non negative priority value.\n");
+                    }
+                    for (int row = 0; row < model.getRowCount(); row++) {
+                        if (model.getValueAt(row, 0).equals(priorityField.getText())) {
+                            errorString.append("Repeated priority value.\n");
+                        }
+                        if (model.getValueAt(row, 3).equals(description.getText())) {
+                            errorString.append("Repeated description value.\n");
+                        }
                     }
                     if (errorString.toString().length() != 0) {
                         JOptionPane.showMessageDialog(frame, errorString.toString());
