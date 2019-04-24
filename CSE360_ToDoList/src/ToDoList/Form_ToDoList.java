@@ -90,44 +90,15 @@ public class Form_ToDoList {
         
         String saveString = "";
         
-        saveString = saveString + "INCOMPLETE:";
-        for (int i = 0 ; i < taskList.size(); i++){
-        	Task T = taskList.get(i);
-        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
-        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
-        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
-        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
-        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
-        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
-        }
-        
-        saveString = saveString + newline + "COMPLETED: ";
-        for (int i = 0 ; i < completedList.size(); i++){
-        	Task T = completedList.get(i);
-        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
-        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
-        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
-        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
-        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
-        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
-        }
-        
-        saveString = saveString + newline + "DELETED:";
-        for (int i = 0 ; i < deletedList.size(); i++){
-        	Task T = deletedList.get(i);
-        	saveString = saveString + newline + "\tPriority: " + T.getPriority() + newline;
-        	saveString = saveString + "\tStatus: " + T.getStatus() + newline;
-        	saveString = saveString + "\tDate: " + T.getDueDate() + newline;
-        	saveString = saveString + "\tDescription: " + T.getDescription() + newline;
-        	saveString = saveString + "\tStart Date: " + T.getStartDate() + newline;
-        	saveString = saveString + "\tCompleted Date: " + T.getCompletedDate() + newline;
-        }
+        saveString = writeToSaveString(saveString, "INCOMPLETE: ", taskList);
+        saveString = writeToSaveString(saveString, "COMPLETED: ", completedList);
+        saveString = writeToSaveString(saveString, "DELETED: ", deletedList);
         
         writer.write(saveString); 
         writer.flush();
         writer.close();
         
-        try {
+        try { //Open the Print report file to show to viewer
             Desktop desktop = null;
             if (Desktop.isDesktopSupported()) {
               desktop = Desktop.getDesktop();
@@ -139,6 +110,21 @@ public class Form_ToDoList {
           }
 	}
 	
+	//Write to the string that we will save to file
+	private String writeToSaveString(String saveString, String Type, List<Task> objectList) {
+        saveString += newline + Type;
+        for (int i = 0 ; i < objectList.size(); i++){
+        	Task T = objectList.get(i);
+        	saveString += newline + "\tPriority: " + T.getPriority() + newline;
+        	saveString += "\tStatus: " + T.getStatus() + newline;
+        	saveString += "\tDate: " + T.getDueDate() + newline;
+        	saveString += "\tDescription: " + T.getDescription() + newline;
+        	saveString += "\tStart Date: " + T.getStartDate() + newline;
+        	saveString += "\tCompleted Date: " + T.getCompletedDate() + newline;
+        }
+		return saveString;
+	}
+	
 	private void save(DefaultTableModel model) throws IOException  {
         File file = new File(saveFile);
       
@@ -147,32 +133,27 @@ public class Form_ToDoList {
         
         String saveString = "";
         
-        for (int i = 0 ; i < taskList.size(); i++){
-        	String S[] = taskList.get(i).toStringArray();
-        	for (int j = 0; j<6; j++) {
-        		saveString += S[j] + "\n";
-        	}
-        }
-        
-        for (int i = 0 ; i < completedList.size(); i++){
-        	String S[] = completedList.get(i).toStringArray();
-        	for (int j = 0; j<6; j++) {
-        		saveString += S[j] + "\n";
-        	}
-        }
-        
-        for (int i = 0 ; i < deletedList.size(); i++){
-        	String S[] = deletedList.get(i).toStringArray();
-        	for (int j = 0; j<6; j++) {
-        		saveString += S[j] + "\n";
-        	}
-        }
+        saveString = writePadding(saveString, taskList);
+        saveString = writePadding(saveString, completedList);
+        saveString = writePadding(saveString, deletedList);
         
         writer.write(saveString); 
         writer.flush();
         writer.close();
 	}
 	
+	//generates the padding in the save file
+	private String writePadding(String saveString, List<Task> objectList) {
+        for (int i = 0 ; i < objectList.size(); i++){
+        	String S[] = objectList.get(i).toStringArray();
+        	for (int j = 0; j<6; j++) {
+        		saveString += S[j] + "\n";
+        	}
+        }
+		return saveString;
+	}
+	
+	//load function called in startup
 	private void load(DefaultTableModel model)  throws IOException{
 		
 		model.setRowCount(0);
@@ -192,8 +173,8 @@ public class Form_ToDoList {
         String fileCompletedDate = " ";
 
         String input = "";
-        for(char c : a){
-            if (c == '\n'){
+        for(char c : a){ //for every character in a
+            if (c == '\n'){ //if new task
                 if (fileCounter == 0){filePriority = Integer.parseInt(input);}
                 else if (fileCounter == 1){fileStatus = input;}
                 else if (fileCounter == 2){fileDueDate = input;}
@@ -216,6 +197,7 @@ public class Form_ToDoList {
         fr.close();
 	}
 	
+	//add a new task
     static void add(DefaultTableModel model, Task T) {
 		if (T.getStatus().equals("Deleted")) {
 			deletedList.add(T);
@@ -229,6 +211,7 @@ public class Form_ToDoList {
 		display(model);
     }
     
+    //display the updated list
     static void display(DefaultTableModel model) {
     	model.setRowCount(0);
     	for (int i = 0; i < taskList.size(); i ++) {
@@ -238,8 +221,9 @@ public class Form_ToDoList {
     	}
     }
     
+    //delete from the list
     static void delete(DefaultTableModel model,int row) {
-    	for (int i = 0; i < model.getRowCount(); i++) {
+    	for (int i = 0; i < model.getRowCount(); i++) { //update every value below the given value
     		Task T = taskList.get(i);
     		if (Integer.toString(T.getPriority()).equals(model.getValueAt(row, 0))) {
     			T.setStatus("Deleted");
@@ -253,10 +237,11 @@ public class Form_ToDoList {
     	display(model);
     }
     
+    //complete a task from the list
     static void complete(DefaultTableModel model,int row) {
     	DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 		Date date = new Date();
-		for (int i = 0; i < model.getRowCount(); i++) {
+		for (int i = 0; i < model.getRowCount(); i++) {//update every value below the given value
 			Task T = taskList.get(i);
 			if (Integer.toString(T.getPriority()).equals(model.getValueAt(row, 0))) {
 				T.setStatus("Completed");
@@ -271,44 +256,13 @@ public class Form_ToDoList {
     	display(model);
     }
     
+    //restart to a new list
     static void restart(DefaultTableModel model) {
     	model.setRowCount(0);
     	taskList.clear();
     	completedList.clear();
     	deletedList.clear();
     }
-    
-    //this function is currently unused. I don't think we need it.
-    static void sortByPriority() {
-		int n = taskList.size();
-        for (int i = 0; i < n-1; i++) {
-            for (int j = 0; j < n-i-1; j++) {
-                if (taskList.get(j).getPriority() > taskList.get(j+1).getPriority()) 
-                { 
-                    Task temp = new Task(taskList.get(j).getPriority(),
-            	        	taskList.get(j).getStatus(),
-            	        	taskList.get(j).getDueDate(),
-            	        	taskList.get(j).getDescription(),
-            	        	taskList.get(j).getStartDate(),
-            	        	taskList.get(j).getCompletedDate());
-                    
-                    taskList.get(j).setPriority(taskList.get(j+1).getPriority());
-    	        	taskList.get(j).setStatus(taskList.get(j+1).getStatus());
-    	        	taskList.get(j).setDueDate(taskList.get(j+1).getDueDate());
-    	        	taskList.get(j).setDescription(taskList.get(j+1).getDescription());
-    	        	taskList.get(j).setStartDate(taskList.get(j+1).getStartDate());
-    	        	taskList.get(j).setCompletedDate(taskList.get(j+1).getCompletedDate());
-
-    	        	taskList.get(j+1).setPriority(temp.getPriority());
-    	        	taskList.get(j+1).setStatus(temp.getStatus());
-    	        	taskList.get(j+1).setDueDate(temp.getDueDate());
-    	        	taskList.get(j+1).setDescription(temp.getDescription());
-    	        	taskList.get(j+1).setStartDate(temp.getStartDate());
-    	        	taskList.get(j+1).setCompletedDate(temp.getCompletedDate());
-                } 
-            }
-        }
-	} 
 
 	static void updatePriorities(int targetPriority) {
 		for (int i = 0; i < taskList.size(); i++) {
@@ -318,6 +272,7 @@ public class Form_ToDoList {
 		}
 	}
     
+	//Initialize on startup
 	private void initialize() {
 		frame = new JFrame("To Do List");
 		frame.addWindowListener(new WindowAdapter() {
@@ -343,7 +298,7 @@ public class Form_ToDoList {
 		JButton btnAdd = new JButton("Add");
         btnAdd.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) { //add button click's listener
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
 
                 //Open new form for add
@@ -383,6 +338,7 @@ public class Form_ToDoList {
                 myPanel.add(new JLabel("Description:"));
                 myPanel.add(scrollpane);
 
+                //check for any repeated values
                 int result = JOptionPane.showConfirmDialog(null, myPanel,
                         "Please Enter the Task to add", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
@@ -422,10 +378,11 @@ public class Form_ToDoList {
         });
 		btnAdd.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
-		JButton btnCompleteTask = new JButton("Complete Task"); //comcom
+		
+		JButton btnCompleteTask = new JButton("Complete Task"); //complete Task button
 		btnCompleteTask.setFont(new Font("Tahoma", Font.BOLD, 16));
 		btnCompleteTask.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) { //Complete task item click listener
 				DefaultTableModel model = (DefaultTableModel)table.getModel();
 				try {
 				int SelectedRow = table.getSelectedRow();
@@ -446,18 +403,19 @@ public class Form_ToDoList {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
 					TableRowSorter<TableModel> sortByColumn = new TableRowSorter<>(table.getModel());
-					sortByColumn.setSortable(0, false);
-					sortByColumn.setSortable(1, false);
-					sortByColumn.setSortable(2, false);
-					sortByColumn.setSortable(3, false);
-					table.setRowSorter(sortByColumn);
+					
+					for(int i = 0; i < table.getColumnCount(); i++) //disable double click sorting on each column
+						sortByColumn.setSortable(i, false);
+					
+					table.setRowSorter(sortByColumn); //make a row sorter
 					
 					List<RowSorter.SortKey> sortKeys = new ArrayList<>();
 					
-					if(comboBox.getSelectedIndex() == 2) 
+					if(comboBox.getSelectedIndex() == 2) //dont allow user to sort by date
 						sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex()+1, SortOrder.ASCENDING));
 					else
 						sortKeys.add(new RowSorter.SortKey(comboBox.getSelectedIndex(), SortOrder.ASCENDING));
+					
 					sortByColumn.setSortKeys(sortKeys);
 					sortByColumn.sort();
 				}
@@ -466,7 +424,7 @@ public class Form_ToDoList {
 		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Priority", "Status", "Description"}));
 		comboBox.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
-		JButton btnDelete = new JButton("Delete"); //deldel
+		JButton btnDelete = new JButton("Delete"); //delete
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DefaultTableModel model = (DefaultTableModel)table.getModel();
@@ -604,7 +562,7 @@ public class Form_ToDoList {
 		                        if (newTask.getPriority()>taskList.size()) {
 		                        	updatePriorities(tempP);
 		                        }
-		                        sortByPriority();
+		                        //sortByPriority();
 		                        display(model);
 		                    }
 		                }
