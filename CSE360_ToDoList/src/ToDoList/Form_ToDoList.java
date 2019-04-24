@@ -1,11 +1,8 @@
-
-/* Group Project: To Do List
-
+/** Group Project: To Do List
   Members: 	Nicholas Breuer
 		Nathaniel Troksa
 		Mays Jabbar
 		Shivanni Methuku
-
   Description:	This is the main class and much of the implementation of the ToDoList form and code.
   		The form enables a user to keep track of a list of "To Do" tasks which the user can:
 		-add to the list
@@ -31,9 +28,6 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.NumberFormatter;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-
 import javax.swing.GroupLayout.Alignment;
 
 import java.awt.event.ActionListener;
@@ -43,16 +37,14 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import java.awt.Font;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.beans.PropertyChangeEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 
 public class Form_ToDoList {
 
+	// global variables 
 	private JFrame frame;
 	private JTable table;
 	
@@ -60,12 +52,11 @@ public class Form_ToDoList {
 	private static List<Task> taskList = new ArrayList<Task>();
 	private static List<Task> completedList = new ArrayList<Task>();
 	private static List<Task> deletedList = new ArrayList<Task>();
-	
 
 	public static String newline = System.getProperty("line.separator");
 	
 	/**
-	 * Launch the application.
+	 * Main method to Launch the application.
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -87,7 +78,10 @@ public class Form_ToDoList {
 		initialize();
 	}
 
-	
+	/**
+	 * Method to print and render the report
+	 * @param DefaultTableModel 
+	 * @return void*/
 	private void printReport(DefaultTableModel model) throws IOException  {
 		File file = new File("printReport.txt");
 	      
@@ -99,7 +93,7 @@ public class Form_ToDoList {
         saveString = writeToSaveString(saveString, "INCOMPLETE: ", taskList); //generate incomplete string in file
         saveString = writeToSaveString(saveString, "COMPLETED: ", completedList); //generate completed task string in file
         saveString = writeToSaveString(saveString, "DELETED: ", deletedList); //generate deleted tasks in file
-        
+
         writer.write(saveString); 
         writer.flush();
         writer.close();
@@ -116,7 +110,10 @@ public class Form_ToDoList {
           }
 	}
 	
-	//Write to the string that we will save to file
+	/**
+	 * Method to store the content of the items to save to the file
+	 * @param String saveString, String type, and List<Task> objectList 
+	 * @return String of the saved items*/
 	private String writeToSaveString(String saveString, String Type, List<Task> objectList) {
         saveString += newline + Type;
         for (int i = 0 ; i < objectList.size(); i++){
@@ -131,6 +128,10 @@ public class Form_ToDoList {
 		return saveString;
 	}
 	
+	/**
+	 * Method to save the content for reopening
+	 * @param DefaultTableModel
+	 * @return void*/
 	private void save(DefaultTableModel model) throws IOException  {
         File file = new File(saveFile);
       
@@ -148,7 +149,10 @@ public class Form_ToDoList {
         writer.close();
 	}
 	
-	//generates the padding in the save file
+	/**
+	 * Method to generate the padding in the save file
+	 * @param String saveString, List<Task> objectList 
+	 * @return String for the padding*/
 	private String writePadding(String saveString, List<Task> objectList) {
         for (int i = 0 ; i < objectList.size(); i++){
         	String S[] = objectList.get(i).toStringArray();
@@ -159,7 +163,10 @@ public class Form_ToDoList {
 		return saveString;
 	}
 	
-	//load function called in startup
+	/**
+	 * Method load function called in the startup
+	 * @param DefaultTableModel model
+	 * @return void*/
 	private void load(DefaultTableModel model)  throws IOException{
 		
 		model.setRowCount(0);
@@ -203,7 +210,11 @@ public class Form_ToDoList {
         fr.close();
 	}
 	
-	//add a new task
+	
+	/**
+	 * Method to add a new task to the ToDoList
+	 * @param DefaultTableModel model, Task t object
+	 * @return void*/
     static void add(DefaultTableModel model, Task T) {
 		if (T.getStatus().equals("Deleted")) {
 			deletedList.add(T);
@@ -217,7 +228,10 @@ public class Form_ToDoList {
 		display(model);
     }
     
-    //display the updated list
+	/**
+	 * Method to display the updated list
+	 * @param DefaultTableModel model
+	 * @return void*/
     static void display(DefaultTableModel model) {
     	model.setRowCount(0);
     	for (int i = 0; i < taskList.size(); i ++) {
@@ -227,7 +241,10 @@ public class Form_ToDoList {
     	}
     }
     
-    //delete from the list
+	/**
+	 * Method to delete item from the list 
+	 * @param DefaultTableModel model, integer row value 
+	 * @return void*/
     static void delete(DefaultTableModel model,int row) {
     	for (int i = 0; i < model.getRowCount(); i++) { //update every value below the given value
     		Task T = taskList.get(i);
@@ -243,7 +260,10 @@ public class Form_ToDoList {
     	display(model);
     }
     
-    //complete a task from the list
+	/**
+	 * Method to mark a task as complete and save the content for printReport
+	 * @param DefaultTableModel model, integer row value
+	 * @return void*/
     static void complete(DefaultTableModel model,int row) {
     	DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 		Date date = new Date();
@@ -262,7 +282,10 @@ public class Form_ToDoList {
     	display(model);
     }
     
-    //sort The taskList by priority
+	/**
+	 * Method to sort Tasks by priority
+	 * @param none
+	 * @return void*/
     static void sortByPriority() {
 		int n = taskList.size();
         for (int i = 0; i < n-1; i++) {
@@ -292,9 +315,12 @@ public class Form_ToDoList {
                 } 
             }
         }
-	} 
+	}
     
-    //restart to a new list
+	/**
+	 * Method to restart to a new list with no Tasks from before
+	 * @param DefaultTableModel model
+	 * @return void*/
     static void restart(DefaultTableModel model) {
     	model.setRowCount(0);
     	taskList.clear();
@@ -302,6 +328,10 @@ public class Form_ToDoList {
     	deletedList.clear();
     }
 
+	/**
+	 * Method for updating the priorities of the Tasks
+	 * @param integer target priority
+	 * @return void*/
 	static void updatePriorities(int targetPriority) {
 		for (int i = 0; i < taskList.size(); i++) {
 			if (taskList.get(i).getPriority() > targetPriority) {
@@ -310,7 +340,10 @@ public class Form_ToDoList {
 		}
 	}
     
-	//Initialize on startup
+	/**
+	 * Method to initialize content on page during startup
+	 * @param void
+	 * @return void*/
 	private void initialize() {
 		frame = new JFrame("To Do List");
 		frame.addWindowListener(new WindowAdapter() {
