@@ -1,3 +1,12 @@
+/** Group Project: To Do List
+  Members: 	Nicholas Breuer
+		Nathaniel Troksa
+		Mays Jabbar
+		Shivanni Methuku
+		
+  Description:	This is the Task helper class which assists in keeping track of each individual task and its parameters
+  */
+
 package ToDoList;
         
 public class Task {
