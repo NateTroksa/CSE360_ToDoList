@@ -256,6 +256,38 @@ public class Form_ToDoList {
     	display(model);
     }
     
+    //sort The taskList by priority
+    static void sortByPriority() {
+		int n = taskList.size();
+        for (int i = 0; i < n-1; i++) {
+            for (int j = 0; j < n-i-1; j++) {
+                if (taskList.get(j).getPriority() > taskList.get(j+1).getPriority()) 
+                { 
+                    Task temp = new Task(taskList.get(j).getPriority(),
+            	        	taskList.get(j).getStatus(),
+            	        	taskList.get(j).getDueDate(),
+            	        	taskList.get(j).getDescription(),
+            	        	taskList.get(j).getStartDate(),
+            	        	taskList.get(j).getCompletedDate());
+                    
+                    taskList.get(j).setPriority(taskList.get(j+1).getPriority());
+    	        	taskList.get(j).setStatus(taskList.get(j+1).getStatus());
+    	        	taskList.get(j).setDueDate(taskList.get(j+1).getDueDate());
+    	        	taskList.get(j).setDescription(taskList.get(j+1).getDescription());
+    	        	taskList.get(j).setStartDate(taskList.get(j+1).getStartDate());
+    	        	taskList.get(j).setCompletedDate(taskList.get(j+1).getCompletedDate());
+
+    	        	taskList.get(j+1).setPriority(temp.getPriority());
+    	        	taskList.get(j+1).setStatus(temp.getStatus());
+    	        	taskList.get(j+1).setDueDate(temp.getDueDate());
+    	        	taskList.get(j+1).setDescription(temp.getDescription());
+    	        	taskList.get(j+1).setStartDate(temp.getStartDate());
+    	        	taskList.get(j+1).setCompletedDate(temp.getCompletedDate());
+                } 
+            }
+        }
+	} 
+    
     //restart to a new list
     static void restart(DefaultTableModel model) {
     	model.setRowCount(0);
@@ -454,6 +486,8 @@ public class Form_ToDoList {
 		});
 		btnSave.setFont(new Font("Tahoma", Font.BOLD, 16));
 		
+		
+		
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -562,7 +596,7 @@ public class Form_ToDoList {
 		                        if (newTask.getPriority()>taskList.size()) {
 		                        	updatePriorities(tempP);
 		                        }
-		                        //sortByPriority();
+		                        sortByPriority();
 		                        display(model);
 		                    }
 		                }
