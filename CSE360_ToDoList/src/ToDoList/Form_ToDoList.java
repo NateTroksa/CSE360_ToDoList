@@ -1,13 +1,19 @@
 
-// Reasons for my changes:
-// I split a lot of stuff up into functions to make everything easier to work with
-// Since tasks require additional dates, I had to make a task class to hold more info
-// Since the rows don't hold the Task objects themselves, I had to make a search and display function
+/* Group Project: To Do List
 
+  Members: 	Nicholas Breuer
+		Nathaniel Troksa
+		Mays Jabbar
+		Shivanni Methuku
 
-//TODO / problems:
-//comments
-//simplify code
+  Description:	This is the main class and much of the implementation of the ToDoList form and code.
+  		The form enables a user to keep track of a list of "To Do" tasks which the user can:
+		-add to the list
+		-complete a task
+		-delete a task
+		-sort by: Priority, Status, and Description
+		-print a report which includes all inprogress, completed, and deleted tasks
+*/
 
 package ToDoList;
 import java.io.*;
@@ -90,9 +96,9 @@ public class Form_ToDoList {
         
         String saveString = "";
         
-        saveString = writeToSaveString(saveString, "INCOMPLETE: ", taskList);
-        saveString = writeToSaveString(saveString, "COMPLETED: ", completedList);
-        saveString = writeToSaveString(saveString, "DELETED: ", deletedList);
+        saveString = writeToSaveString(saveString, "INCOMPLETE: ", taskList); //generate incomplete string in file
+        saveString = writeToSaveString(saveString, "COMPLETED: ", completedList); //generate completed task string in file
+        saveString = writeToSaveString(saveString, "DELETED: ", deletedList); //generate deleted tasks in file
         
         writer.write(saveString); 
         writer.flush();
@@ -161,7 +167,7 @@ public class Form_ToDoList {
         file.createNewFile();
 
         FileReader fr = new FileReader(file);
-        char [] a = new char[1000]; // file buffer (not sure if better way to do this)
+        char [] a = new char[1000]; // file buffer
         fr.read(a); 
 
         int fileCounter = 0;
